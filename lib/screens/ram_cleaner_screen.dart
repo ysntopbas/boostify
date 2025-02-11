@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:percent_indicator/circular_percent_indicator.dart';
 import 'package:boostify/services/system_service.dart';
 import 'package:easy_localization/easy_localization.dart';
+import 'package:boostify/services/ad_service.dart';
+import 'package:google_mobile_ads/google_mobile_ads.dart';
 
 class RamCleanerScreen extends StatefulWidget {
   const RamCleanerScreen({super.key});
@@ -13,11 +15,30 @@ class RamCleanerScreen extends StatefulWidget {
 class _RamCleanerScreenState extends State<RamCleanerScreen> {
   bool isCleaningRam = false;
   double ramUsage = 0.7; // Test için %70 başlangıç değeri
+  BannerAd? _bannerAd;
+  bool _isAdLoaded = false;
 
   @override
   void initState() {
     super.initState();
     _loadRamInfo();
+    _loadBannerAd();
+    AdService.loadRewardedAd();
+  }
+
+  void _loadBannerAd() {
+    _bannerAd = AdService.createBannerAd()
+      ..load().then((_) {
+        setState(() {
+          _isAdLoaded = true;
+        });
+      });
+  }
+
+  @override
+  void dispose() {
+    _bannerAd?.dispose();
+    super.dispose();
   }
 
   Future<void> _loadRamInfo() async {
@@ -28,6 +49,9 @@ class _RamCleanerScreenState extends State<RamCleanerScreen> {
   }
 
   Future<void> cleanRam() async {
+    await AdService.showRewardedAd();
+    await Future.delayed(const Duration(seconds: 5));
+    
     setState(() => isCleaningRam = true);
     try {
       await SystemService.cleanRam();
@@ -74,70 +98,82 @@ class _RamCleanerScreenState extends State<RamCleanerScreen> {
           ),
         ),
         child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            CircularPercentIndicator(
-              radius: 150.0,
-              lineWidth: 15.0,
-              animation: true,
-              animationDuration: 1000,
-              percent: ramUsage,
-              center: Column(
+            Expanded(
+              child: Column(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  Text(
-                    'ram_usage'.tr(),
-                    style: const TextStyle(
-                      fontSize: 20,
-                      fontWeight: FontWeight.w500,
+                  CircularPercentIndicator(
+                    radius: 150.0,
+                    lineWidth: 15.0,
+                    animation: true,
+                    animationDuration: 1000,
+                    percent: ramUsage,
+                    center: Column(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        Text(
+                          'ram_usage'.tr(),
+                          style: const TextStyle(
+                            fontSize: 20,
+                            fontWeight: FontWeight.w500,
+                          ),
+                        ),
+                        const SizedBox(height: 8),
+                        Text(
+                          '${(ramUsage * 100).toInt()}%',
+                          style: TextStyle(
+                            fontSize: 48,
+                            fontWeight: FontWeight.bold,
+                            color: _getRamStatusColor(),
+                          ),
+                        ),
+                        Text(
+                          _getRamStatusText(),
+                          style: TextStyle(
+                            fontSize: 18,
+                            fontWeight: FontWeight.w500,
+                            color: _getRamStatusColor(),
+                          ),
+                        ),
+                      ],
                     ),
+                    circularStrokeCap: CircularStrokeCap.round,
+                    progressColor: _getRamStatusColor(),
+                    backgroundColor: Colors.blue.withOpacity(0.2),
                   ),
-                  const SizedBox(height: 8),
-                  Text(
-                    '${(ramUsage * 100).toInt()}%',
-                    style: TextStyle(
-                      fontSize: 48,
-                      fontWeight: FontWeight.bold,
-                      color: _getRamStatusColor(),
-                    ),
-                  ),
-                  Text(
-                    _getRamStatusText(),
-                    style: TextStyle(
-                      fontSize: 18,
-                      fontWeight: FontWeight.w500,
-                      color: _getRamStatusColor(),
+                  const SizedBox(height: 50),
+                  SizedBox(
+                    width: 200,
+                    height: 50,
+                    child: ElevatedButton(
+                      onPressed: isCleaningRam ? null : cleanRam,
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: _getRamStatusColor(),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(25),
+                        ),
+                        elevation: 5,
+                      ),
+                      child: Text(
+                        isCleaningRam ? 'cleaning'.tr() : 'clean_ram'.tr(),
+                        style: const TextStyle(
+                          fontSize: 18,
+                          fontWeight: FontWeight.bold,
+                          color: Colors.white,
+                        ),
+                      ),
                     ),
                   ),
                 ],
               ),
-              circularStrokeCap: CircularStrokeCap.round,
-              progressColor: _getRamStatusColor(),
-              backgroundColor: Colors.blue.withOpacity(0.2),
             ),
-            const SizedBox(height: 50),
-            SizedBox(
-              width: 200,
-              height: 50,
-              child: ElevatedButton(
-                onPressed: isCleaningRam ? null : cleanRam,
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: _getRamStatusColor(),
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(25),
-                  ),
-                  elevation: 5,
-                ),
-                child: Text(
-                  isCleaningRam ? 'cleaning'.tr() : 'clean_ram'.tr(),
-                  style: const TextStyle(
-                    fontSize: 18,
-                    fontWeight: FontWeight.bold,
-                    color: Colors.white,
-                  ),
-                ),
+            if (_isAdLoaded)
+              Container(
+                height: _bannerAd!.size.height.toDouble(),
+                width: _bannerAd!.size.width.toDouble(),
+                child: AdWidget(ad: _bannerAd!),
               ),
-            ),
           ],
         ),
       ),

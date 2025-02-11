@@ -10,6 +10,8 @@ import 'package:boostify/screens/settings_screen.dart';
 import 'package:boostify/services/optimize_service.dart';
 import 'dart:async';
 import 'package:timelines_plus/timelines_plus.dart';
+import 'package:boostify/services/ad_service.dart';
+import 'package:google_mobile_ads/google_mobile_ads.dart';
 
 class HomeScreen extends StatefulWidget {
   final Function(ThemeMode) onThemeChanged;
@@ -30,6 +32,8 @@ class _HomeScreenState extends State<HomeScreen> with SingleTickerProviderStateM
   int batteryLevel = 0;
   bool isCharging = false;
   bool showDoneButton = false;
+  BannerAd? _bannerAd;
+  bool _isAdLoaded = false;
 
   late AnimationController _animationController;
   late Animation<double> _fadeAnimation;
@@ -95,11 +99,15 @@ class _HomeScreenState extends State<HomeScreen> with SingleTickerProviderStateM
       parent: _animationController,
       curve: Curves.easeInOut,
     ));
+
+    _loadBannerAd();
+    AdService.loadRewardedAd();
   }
 
   @override
   void dispose() {
     _animationController.dispose();
+    _bannerAd?.dispose();
     super.dispose();
   }
 
@@ -126,7 +134,19 @@ class _HomeScreenState extends State<HomeScreen> with SingleTickerProviderStateM
     return 3;
   }
 
+  void _loadBannerAd() {
+    _bannerAd = AdService.createBannerAd()
+      ..load().then((_) {
+        setState(() {
+          _isAdLoaded = true;
+        });
+      });
+  }
+
   Future<void> optimize() async {
+    await AdService.showRewardedAd();
+    await Future.delayed(const Duration(seconds: 5));
+    
     setState(() {
       isOptimizing = true;
       currentStep = 0;
@@ -399,132 +419,144 @@ class _HomeScreenState extends State<HomeScreen> with SingleTickerProviderStateM
         ),
         child: Column(
           children: [
-            const SizedBox(height: 100),
-            SlideTransition(
-              position: _slideAnimation,
-              child: ScaleTransition(
-                scale: _scaleAnimation,
-                child: CircularPercentIndicator(
-                  radius: 110.0,
-                  lineWidth: 15.0,
-                  animation: true,
-                  animationDuration: 1000,
-                  percent: systemScore,
-                  center: Column(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      Text(
-                        '${(systemScore * 100).toInt()}',
-                        style: TextStyle(
-                          fontSize: 48,
-                          fontWeight: FontWeight.bold,
-                          color: _getScoreColor(),
-                        ),
-                      ),
-                      const SizedBox(height: 8),
-                      Text(
-                        _getScoreText(),
-                        style: TextStyle(
-                          fontSize: 24,
-                          fontWeight: FontWeight.w500,
-                          color: _getScoreColor(),
-                        ),
-                      ),
-                    ],
-                  ),
-                  circularStrokeCap: CircularStrokeCap.round,
-                  progressColor: _getScoreColor(),
-                  backgroundColor: Colors.blue.withOpacity(0.2),
-                ),
-              ),
-            ),
-            const SizedBox(height: 20),
-            if (isOptimizing) ...[
-              _buildOptimizationTimeline(),
-            ] else ...[
-              const SizedBox(height: 40),
-              FadeTransition(
-                opacity: _fadeAnimation,
-                child: Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 32),
-                  child: Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                    children: [
-                      _buildCircularButton(
-                        icon: Icons.memory,
-                        label: 'RAM',
-                        color: Colors.blue,
-                        onTap: () {
-                          Navigator.push(
-                            context,
-                            MaterialPageRoute(
-                              builder: (context) => const RamCleanerScreen(),
-                            ),
-                          );
-                        },
-                      ),
-                      _buildCircularButton(
-                        icon: isCharging ? Icons.battery_charging_full : Icons.battery_full,
-                        label: '$batteryLevel%',
-                        color: Colors.green,
-                        onTap: () {
-                          Navigator.push(
-                            context,
-                            MaterialPageRoute(
-                              builder: (context) => const BatteryInfoScreen(),
-                            ),
-                          );
-                        },
-                      ),
-                      _buildCircularButton(
-                        icon: Icons.settings,
-                        label: 'settings'.tr(),
-                        color: Colors.grey,
-                        onTap: () {
-                          Navigator.push(
-                            context,
-                            MaterialPageRoute(
-                              builder: (context) => SettingsScreen(
-                                onThemeChanged: widget.onThemeChanged,
-                                currentThemeMode: Theme.of(context).brightness == Brightness.dark 
-                                  ? ThemeMode.dark 
-                                  : ThemeMode.light,
+            Expanded(
+              child: Column(
+                children: [
+                  const SizedBox(height: 100),
+                  SlideTransition(
+                    position: _slideAnimation,
+                    child: ScaleTransition(
+                      scale: _scaleAnimation,
+                      child: CircularPercentIndicator(
+                        radius: 110.0,
+                        lineWidth: 15.0,
+                        animation: true,
+                        animationDuration: 1000,
+                        percent: systemScore,
+                        center: Column(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            Text(
+                              '${(systemScore * 100).toInt()}',
+                              style: TextStyle(
+                                fontSize: 48,
+                                fontWeight: FontWeight.bold,
+                                color: _getScoreColor(),
                               ),
                             ),
-                          );
-                        },
-                      ),
-                    ],
-                  ),
-                ),
-              ),
-              const SizedBox(height: 40),
-              FadeTransition(
-                opacity: _fadeAnimation,
-                child: SizedBox(
-                  width: 200,
-                  height: 50,
-                  child: ElevatedButton(
-                    onPressed: isOptimizing ? null : optimize,
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: Colors.green,
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(25),
-                      ),
-                      elevation: 5,
-                    ),
-                    child: Text(
-                      isOptimizing ? 'cleaning'.tr() : 'optimization'.tr(),
-                      style: const TextStyle(
-                        fontSize: 18,
-                        fontWeight: FontWeight.bold,
-                        color: Colors.white,
+                            const SizedBox(height: 8),
+                            Text(
+                              _getScoreText(),
+                              style: TextStyle(
+                                fontSize: 24,
+                                fontWeight: FontWeight.w500,
+                                color: _getScoreColor(),
+                              ),
+                            ),
+                          ],
+                        ),
+                        circularStrokeCap: CircularStrokeCap.round,
+                        progressColor: _getScoreColor(),
+                        backgroundColor: Colors.blue.withOpacity(0.2),
                       ),
                     ),
                   ),
-                ),
+                  const SizedBox(height: 20),
+                  if (isOptimizing) ...[
+                    _buildOptimizationTimeline(),
+                  ] else ...[
+                    const SizedBox(height: 40),
+                    FadeTransition(
+                      opacity: _fadeAnimation,
+                      child: Padding(
+                        padding: const EdgeInsets.symmetric(horizontal: 32),
+                        child: Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                          children: [
+                            _buildCircularButton(
+                              icon: Icons.memory,
+                              label: 'RAM',
+                              color: Colors.blue,
+                              onTap: () {
+                                Navigator.push(
+                                  context,
+                                  MaterialPageRoute(
+                                    builder: (context) => const RamCleanerScreen(),
+                                  ),
+                                );
+                              },
+                            ),
+                            _buildCircularButton(
+                              icon: isCharging ? Icons.battery_charging_full : Icons.battery_full,
+                              label: '$batteryLevel%',
+                              color: Colors.green,
+                              onTap: () {
+                                Navigator.push(
+                                  context,
+                                  MaterialPageRoute(
+                                    builder: (context) => const BatteryInfoScreen(),
+                                  ),
+                                );
+                              },
+                            ),
+                            _buildCircularButton(
+                              icon: Icons.settings,
+                              label: 'settings'.tr(),
+                              color: Colors.grey,
+                              onTap: () {
+                                Navigator.push(
+                                  context,
+                                  MaterialPageRoute(
+                                    builder: (context) => SettingsScreen(
+                                      onThemeChanged: widget.onThemeChanged,
+                                      currentThemeMode: Theme.of(context).brightness == Brightness.dark 
+                                        ? ThemeMode.dark 
+                                        : ThemeMode.light,
+                                    ),
+                                  ),
+                                );
+                              },
+                            ),
+                          ],
+                        ),
+                      ),
+                    ),
+                    const SizedBox(height: 40),
+                    FadeTransition(
+                      opacity: _fadeAnimation,
+                      child: SizedBox(
+                        width: 200,
+                        height: 50,
+                        child: ElevatedButton(
+                          onPressed: isOptimizing ? null : optimize,
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: Colors.green,
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(25),
+                            ),
+                            elevation: 5,
+                          ),
+                          child: Text(
+                            isOptimizing ? 'cleaning'.tr() : 'optimization'.tr(),
+                            style: const TextStyle(
+                              fontSize: 18,
+                              fontWeight: FontWeight.bold,
+                              color: Colors.white,
+                            ),
+                          ),
+                        ),
+                      ),
+                    ),
+                  ],
+                ],
               ),
-            ],
+            ),
+            if (_isAdLoaded)
+              Container(
+                height: _bannerAd!.size.height.toDouble(),
+                width: _bannerAd!.size.width.toDouble(),
+                child: AdWidget(ad: _bannerAd!),
+              ),
           ],
         ),
       ),

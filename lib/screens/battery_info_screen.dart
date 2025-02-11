@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:battery_plus/battery_plus.dart';
 import 'package:boostify/services/battery_service.dart';
 import 'package:easy_localization/easy_localization.dart';
+import 'package:boostify/services/ad_service.dart';
+import 'package:google_mobile_ads/google_mobile_ads.dart';
 
 class BatteryInfoScreen extends StatefulWidget {
   const BatteryInfoScreen({super.key});
@@ -14,11 +16,29 @@ class _BatteryInfoScreenState extends State<BatteryInfoScreen> {
   Map<String, dynamic> batteryInfo = {};
   int batteryLevel = 0;
   BatteryState batteryState = BatteryState.unknown;
+  BannerAd? _bannerAd;
+  bool _isAdLoaded = false;
 
   @override
   void initState() {
     super.initState();
     _loadBatteryInfo();
+    _loadBannerAd();
+  }
+
+  void _loadBannerAd() {
+    _bannerAd = AdService.createBannerAd()
+      ..load().then((_) {
+        setState(() {
+          _isAdLoaded = true;
+        });
+      });
+  }
+
+  @override
+  void dispose() {
+    _bannerAd?.dispose();
+    super.dispose();
   }
 
   Future<void> _loadBatteryInfo() async {
@@ -76,48 +96,60 @@ class _BatteryInfoScreenState extends State<BatteryInfoScreen> {
       ),
       body: RefreshIndicator(
         onRefresh: _loadBatteryInfo,
-        child: ListView(
-          padding: const EdgeInsets.symmetric(vertical: 16),
+        child: Column(
           children: [
-            _buildInfoCard(
-              title: 'battery_level'.tr(),
-              value: '$batteryLevel%',
-              icon: batteryState == BatteryState.charging 
-                ? Icons.battery_charging_full 
-                : Icons.battery_full,
-              iconColor: batteryLevel > 20 ? Colors.green : Colors.red,
+            Expanded(
+              child: ListView(
+                padding: const EdgeInsets.symmetric(vertical: 16),
+                children: [
+                  _buildInfoCard(
+                    title: 'battery_level'.tr(),
+                    value: '$batteryLevel%',
+                    icon: batteryState == BatteryState.charging 
+                      ? Icons.battery_charging_full 
+                      : Icons.battery_full,
+                    iconColor: batteryLevel > 20 ? Colors.green : Colors.red,
+                  ),
+                  _buildInfoCard(
+                    title: 'battery_status'.tr(),
+                    value: _getBatteryStateText(),
+                    icon: Icons.info_outline,
+                  ),
+                  if (batteryInfo['temperature'] != null)
+                    _buildInfoCard(
+                      title: 'battery_temperature'.tr(),
+                      value: '${batteryInfo['temperature']}°C',
+                      icon: Icons.thermostat,
+                      iconColor: Colors.orange,
+                    ),
+                  if (batteryInfo['voltage'] != null)
+                    _buildInfoCard(
+                      title: 'battery_voltage'.tr(),
+                      value: '${batteryInfo['voltage']}V',
+                      icon: Icons.electric_bolt,
+                      iconColor: Colors.yellow[700],
+                    ),
+                  if (batteryInfo['technology'] != null)
+                    _buildInfoCard(
+                      title: 'battery_technology'.tr(),
+                      value: batteryInfo['technology'],
+                      icon: Icons.memory,
+                    ),
+                  if (batteryInfo['health'] != null)
+                    _buildInfoCard(
+                      title: 'battery_health'.tr(),
+                      value: BatteryService.getBatteryHealthStatus(batteryInfo['health']),
+                      icon: Icons.favorite,
+                      iconColor: Colors.red,
+                    ),
+                ],
+              ),
             ),
-            _buildInfoCard(
-              title: 'battery_status'.tr(),
-              value: _getBatteryStateText(),
-              icon: Icons.info_outline,
-            ),
-            if (batteryInfo['temperature'] != null)
-              _buildInfoCard(
-                title: 'battery_temperature'.tr(),
-                value: '${batteryInfo['temperature']}°C',
-                icon: Icons.thermostat,
-                iconColor: Colors.orange,
-              ),
-            if (batteryInfo['voltage'] != null)
-              _buildInfoCard(
-                title: 'battery_voltage'.tr(),
-                value: '${batteryInfo['voltage']}V',
-                icon: Icons.electric_bolt,
-                iconColor: Colors.yellow[700],
-              ),
-            if (batteryInfo['technology'] != null)
-              _buildInfoCard(
-                title: 'battery_technology'.tr(),
-                value: batteryInfo['technology'],
-                icon: Icons.memory,
-              ),
-            if (batteryInfo['health'] != null)
-              _buildInfoCard(
-                title: 'battery_health'.tr(),
-                value: BatteryService.getBatteryHealthStatus(batteryInfo['health']),
-                icon: Icons.favorite,
-                iconColor: Colors.red,
+            if (_isAdLoaded)
+              Container(
+                height: _bannerAd!.size.height.toDouble(),
+                width: _bannerAd!.size.width.toDouble(),
+                child: AdWidget(ad: _bannerAd!),
               ),
           ],
         ),
