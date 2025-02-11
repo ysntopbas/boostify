@@ -1,4 +1,5 @@
 import 'package:google_mobile_ads/google_mobile_ads.dart';
+import 'dart:async';
 
 class AdService {
   static String get bannerAdUnitId {
@@ -94,14 +95,43 @@ class AdService {
     );
   }
 
-  static Future<void> showRewardedAd() async {
+  static Future<bool> showRewardedAd() async {
     if (_rewardedAd != null) {
-      await _rewardedAd?.show(
-        onUserEarnedReward: (_, reward) {
-          print('User earned reward: ${reward.amount} ${reward.type}');
-        },
-      );
+      Completer<bool> rewardCompleter = Completer<bool>();
+      bool hasReward = false;
+      
+      try {
+        _rewardedAd?.fullScreenContentCallback = FullScreenContentCallback(
+          onAdDismissedFullScreenContent: (ad) {
+            ad.dispose();
+            _rewardedAd = null;
+            rewardCompleter.complete(hasReward);
+            loadRewardedAd();
+          },
+          onAdFailedToShowFullScreenContent: (ad, error) {
+            ad.dispose();
+            _rewardedAd = null;
+            rewardCompleter.complete(false);
+            loadRewardedAd();
+          },
+        );
+
+        await _rewardedAd?.show(
+          onUserEarnedReward: (_, reward) {
+            print('User earned reward: ${reward.amount} ${reward.type}');
+            hasReward = true;
+          },
+        );
+        
+        return await rewardCompleter.future;
+      } catch (e) {
+        if (!rewardCompleter.isCompleted) {
+          rewardCompleter.complete(false);
+        }
+        return false;
+      }
     }
+    return false;
   }
 
   static void disposeAds() {

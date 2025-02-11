@@ -98,74 +98,77 @@ class _RamCleanerScreenState extends State<RamCleanerScreen> {
           ),
         ),
         child: Column(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
             Expanded(
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  CircularPercentIndicator(
-                    radius: 150.0,
-                    lineWidth: 15.0,
-                    animation: true,
-                    animationDuration: 1000,
-                    percent: ramUsage,
-                    center: Column(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        Text(
-                          'ram_usage'.tr(),
+              child: Center(
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    CircularPercentIndicator(
+                      radius: 150.0,
+                      lineWidth: 15.0,
+                      animation: true,
+                      animationDuration: 1000,
+                      percent: ramUsage,
+                      center: Column(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          Text(
+                            'ram_usage'.tr(),
+                            style: const TextStyle(
+                              fontSize: 20,
+                              fontWeight: FontWeight.w500,
+                            ),
+                          ),
+                          const SizedBox(height: 8),
+                          Text(
+                            '${(ramUsage * 100).toInt()}%',
+                            style: TextStyle(
+                              fontSize: 48,
+                              fontWeight: FontWeight.bold,
+                              color: _getRamStatusColor(),
+                            ),
+                          ),
+                          Text(
+                            _getRamStatusText(),
+                            style: TextStyle(
+                              fontSize: 18,
+                              fontWeight: FontWeight.w500,
+                              color: _getRamStatusColor(),
+                            ),
+                          ),
+                        ],
+                      ),
+                      circularStrokeCap: CircularStrokeCap.round,
+                      progressColor: _getRamStatusColor(),
+                      backgroundColor: Colors.blue.withOpacity(0.2),
+                    ),
+                    const SizedBox(height: 50),
+                    SizedBox(
+                      width: 200,
+                      height: 50,
+                      child: ElevatedButton(
+                        onPressed: isCleaningRam ? null : cleanRam,
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: _getRamStatusColor(),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(25),
+                          ),
+                          elevation: 5,
+                        ),
+                        child: Text(
+                          isCleaningRam ? 'cleaning'.tr() : 'clean_ram'.tr(),
                           style: const TextStyle(
-                            fontSize: 20,
-                            fontWeight: FontWeight.w500,
-                          ),
-                        ),
-                        const SizedBox(height: 8),
-                        Text(
-                          '${(ramUsage * 100).toInt()}%',
-                          style: TextStyle(
-                            fontSize: 48,
-                            fontWeight: FontWeight.bold,
-                            color: _getRamStatusColor(),
-                          ),
-                        ),
-                        Text(
-                          _getRamStatusText(),
-                          style: TextStyle(
                             fontSize: 18,
-                            fontWeight: FontWeight.w500,
-                            color: _getRamStatusColor(),
+                            fontWeight: FontWeight.bold,
+                            color: Colors.white,
                           ),
                         ),
-                      ],
-                    ),
-                    circularStrokeCap: CircularStrokeCap.round,
-                    progressColor: _getRamStatusColor(),
-                    backgroundColor: Colors.blue.withOpacity(0.2),
-                  ),
-                  const SizedBox(height: 50),
-                  SizedBox(
-                    width: 200,
-                    height: 50,
-                    child: ElevatedButton(
-                      onPressed: isCleaningRam ? null : cleanRam,
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: _getRamStatusColor(),
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(25),
-                        ),
-                        elevation: 5,
-                      ),
-                      child: Text(
-                        isCleaningRam ? 'cleaning'.tr() : 'clean_ram'.tr(),
-                        style: const TextStyle(
-                          fontSize: 18,
-                          fontWeight: FontWeight.bold,
-                          color: Colors.white,
-                        ),
                       ),
                     ),
-                  ),
-                ],
+                  ],
+                ),
               ),
             ),
             if (_isAdLoaded)

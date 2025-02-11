@@ -34,6 +34,7 @@ class _HomeScreenState extends State<HomeScreen> with SingleTickerProviderStateM
   bool showDoneButton = false;
   BannerAd? _bannerAd;
   bool _isAdLoaded = false;
+  bool isOptimizeButtonEnabled = true;
 
   late AnimationController _animationController;
   late Animation<double> _fadeAnimation;
@@ -144,47 +145,66 @@ class _HomeScreenState extends State<HomeScreen> with SingleTickerProviderStateM
   }
 
   Future<void> optimize() async {
-    await AdService.showRewardedAd();
-    await Future.delayed(const Duration(seconds: 5));
+    if (!isOptimizeButtonEnabled) return;
     
     setState(() {
-      isOptimizing = true;
-      currentStep = 0;
-      showDoneButton = false;
+      isOptimizeButtonEnabled = false;
     });
 
-    await _animationController.forward();
-    final duration = _getOptimizeDuration();
-
     try {
-      // CPU Optimization
-      setState(() => currentStep = 0);
-      await Future.delayed(Duration(seconds: duration));
+      final bool rewardEarned = await AdService.showRewardedAd();
+      
+      if (rewardEarned) {
+        setState(() {
+          isOptimizing = true;
+          currentStep = 0;
+          showDoneButton = false;
+        });
 
-      // RAM Optimization
-      setState(() => currentStep = 1);
-      await SystemService.cleanRam();
-      await Future.delayed(Duration(seconds: duration));
+        await _animationController.forward();
+        final duration = _getOptimizeDuration();
 
-      // Battery Optimization
-      setState(() => currentStep = 2);
-      await Future.delayed(Duration(seconds: duration));
+        try {
+          // CPU Optimization
+          setState(() => currentStep = 0);
+          await Future.delayed(Duration(seconds: duration));
 
-      // Cache Optimization & Background Apps
-      setState(() => currentStep = 3);
-      await SystemService.optimizeSystem();
-      await Future.delayed(Duration(seconds: duration));
+          // RAM Optimization
+          setState(() => currentStep = 1);
+          await SystemService.cleanRam();
+          await Future.delayed(Duration(seconds: duration));
 
-      // Complete
-      final score = await OptimizeService.optimize();
-      setState(() {
-        systemScore = score / 100;
-        currentStep = 4;
-        showDoneButton = true;
-      });
+          // Battery Optimization
+          setState(() => currentStep = 2);
+          await Future.delayed(Duration(seconds: duration));
 
+          // Cache Optimization
+          setState(() => currentStep = 3);
+          await SystemService.optimizeSystem();
+          await Future.delayed(Duration(seconds: duration));
+
+          // Complete
+          final score = await OptimizeService.optimize();
+          setState(() {
+            systemScore = score / 100;
+            currentStep = 4;
+            showDoneButton = true;
+            isOptimizeButtonEnabled = false; // Buton devre dışı kalsın
+          });
+        } catch (e) {
+          await _resetOptimization();
+        }
+      } else {
+        // Ödül kazanılmadıysa butonu tekrar aktif et
+        setState(() {
+          isOptimizeButtonEnabled = true;
+        });
+      }
     } catch (e) {
-      await _resetOptimization();
+      // Hata durumunda butonu tekrar aktif et
+      setState(() {
+        isOptimizeButtonEnabled = true;
+      });
     }
   }
 
@@ -194,6 +214,7 @@ class _HomeScreenState extends State<HomeScreen> with SingleTickerProviderStateM
       isOptimizing = false;
       currentStep = -1;
       showDoneButton = false;
+      isOptimizeButtonEnabled = true; // Butonu tekrar aktif et
     });
   }
 
@@ -528,7 +549,7 @@ class _HomeScreenState extends State<HomeScreen> with SingleTickerProviderStateM
                         width: 200,
                         height: 50,
                         child: ElevatedButton(
-                          onPressed: isOptimizing ? null : optimize,
+                          onPressed: !isOptimizeButtonEnabled ? null : optimize,
                           style: ElevatedButton.styleFrom(
                             backgroundColor: Colors.green,
                             shape: RoundedRectangleBorder(
