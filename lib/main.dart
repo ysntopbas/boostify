@@ -1,10 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:boostify/screens/home_screen.dart';
+import 'package:boostify/services/optimize_service.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   await EasyLocalization.ensureInitialized();
+  await OptimizeService.init();
 
   runApp(EasyLocalization(
     supportedLocales: const [

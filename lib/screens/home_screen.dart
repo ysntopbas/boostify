@@ -7,6 +7,8 @@ import 'package:boostify/services/battery_service.dart';
 import 'package:boostify/screens/ram_cleaner_screen.dart';
 import 'package:boostify/screens/battery_info_screen.dart';
 import 'package:boostify/screens/settings_screen.dart';
+import 'package:boostify/services/optimize_service.dart';
+import 'dart:async';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -20,19 +22,40 @@ class _HomeScreenState extends State<HomeScreen> {
   double systemScore = 1.0;
   int batteryLevel = 0;
   bool isCharging = false;
+  Timer? _timer;
 
   @override
   void initState() {
     super.initState();
-    _loadSystemInfo();
+    _initializeApp();
+    _startTimer();
+  }
+
+  @override
+  void dispose() {
+    _timer?.cancel();
+    super.dispose();
+  }
+
+  Future<void> _initializeApp() async {
+    await OptimizeService.init();
+    await _loadSystemInfo();
+  }
+
+  void _startTimer() {
+    // Her 1 dakikada bir kontrol et
+    _timer = Timer.periodic(const Duration(minutes: 1), (timer) async {
+      await _loadSystemInfo();
+    });
   }
 
   Future<void> _loadSystemInfo() async {
     final battery = await BatteryService.getBatteryLevel();
     final batteryState = await BatteryService.getBatteryState();
+    final score = await OptimizeService.getScore();
     
     setState(() {
-      systemScore = 1.0;
+      systemScore = score / 100; // Yüzdelik değeri 0-1 aralığına çevir
       batteryLevel = battery;
       isCharging = batteryState == BatteryState.charging;
     });
@@ -43,7 +66,10 @@ class _HomeScreenState extends State<HomeScreen> {
     try {
       await SystemService.clearCache();
       await SystemService.cleanRam();
-      await _loadSystemInfo();
+      final score = await OptimizeService.optimize();
+      setState(() {
+        systemScore = score / 100;
+      });
     } finally {
       setState(() => isOptimizing = false);
     }
@@ -51,8 +77,9 @@ class _HomeScreenState extends State<HomeScreen> {
 
   Color _getScoreColor() {
     final score = systemScore * 100;
-    if (score >= 90) return Colors.green;
-    if (score >= 70) return Colors.orange;
+    if (score >= 85) return Colors.green;
+    if (score >= 75) return Colors.blue;
+    if (score >= 70) return Colors.orange.shade400;
     return Colors.red;
   }
 
