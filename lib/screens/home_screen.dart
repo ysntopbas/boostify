@@ -8,8 +8,8 @@ import 'package:boostify/screens/ram_cleaner_screen.dart';
 import 'package:boostify/screens/battery_info_screen.dart';
 import 'package:boostify/screens/settings_screen.dart';
 import 'package:boostify/services/optimize_service.dart';
-import 'package:timelines_plus/timelines_plus.dart';
 import 'dart:async';
+import 'package:timelines_plus/timelines_plus.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -56,12 +56,6 @@ class _HomeScreenState extends State<HomeScreen> with SingleTickerProviderStateM
       optimizingText: 'cache_optimizing',
       optimizedText: 'cache_optimized',
     ),
-    OptimizeStep(
-      icon: Icons.check_circle_outline,
-      activeIcon: Icons.check_circle,
-      optimizingText: 'optimization_completed',
-      optimizedText: 'done',
-    ),
   ];
 
   @override
@@ -83,7 +77,7 @@ class _HomeScreenState extends State<HomeScreen> with SingleTickerProviderStateM
 
     _slideAnimation = Tween<Offset>(
       begin: Offset.zero,
-      end: const Offset(0, -0.3),
+      end: const Offset(0, -0.15),
     ).animate(CurvedAnimation(
       parent: _animationController,
       curve: Curves.easeInOut,
@@ -120,6 +114,13 @@ class _HomeScreenState extends State<HomeScreen> with SingleTickerProviderStateM
     });
   }
 
+  int _getOptimizeDuration() {
+    final score = systemScore * 100;
+    if (score >= 90) return 1;
+    if (score >= 80) return 2;
+    return 3;
+  }
+
   Future<void> optimize() async {
     setState(() {
       isOptimizing = true;
@@ -128,40 +129,36 @@ class _HomeScreenState extends State<HomeScreen> with SingleTickerProviderStateM
     });
 
     await _animationController.forward();
+    final duration = _getOptimizeDuration();
 
     try {
       // CPU Optimization
       setState(() => currentStep = 0);
-      await Future.delayed(const Duration(seconds: 5));
+      await Future.delayed(Duration(seconds: duration));
 
       // RAM Optimization
       setState(() => currentStep = 1);
       await SystemService.cleanRam();
-      await Future.delayed(const Duration(seconds: 5));
+      await Future.delayed(Duration(seconds: duration));
 
       // Battery Optimization
       setState(() => currentStep = 2);
-      await Future.delayed(const Duration(seconds: 5));
+      await Future.delayed(Duration(seconds: duration));
 
       // Cache Optimization
       setState(() => currentStep = 3);
       await SystemService.clearCache();
-      await Future.delayed(const Duration(seconds: 5));
+      await Future.delayed(Duration(seconds: duration));
 
       // Complete
-      setState(() => currentStep = 4);
       final score = await OptimizeService.optimize();
       setState(() {
         systemScore = score / 100;
-      });
-      await Future.delayed(const Duration(seconds: 2));
-
-      setState(() {
+        currentStep = 4;
         showDoneButton = true;
       });
 
     } catch (e) {
-      // Hata durumunda animasyonları geri al
       await _resetOptimization();
     }
   }
@@ -248,7 +245,7 @@ class _HomeScreenState extends State<HomeScreen> with SingleTickerProviderStateM
           contentsBuilder: (_, index) {
             final step = optimizeSteps[index];
             final isActive = currentStep == index;
-            final isCompleted = currentStep > index;
+            final isCompleted = currentStep > index || (showDoneButton && index == optimizeSteps.length - 1);
             
             return Padding(
               padding: const EdgeInsets.only(top: 8.0),
@@ -257,18 +254,23 @@ class _HomeScreenState extends State<HomeScreen> with SingleTickerProviderStateM
                 children: [
                   Icon(
                     isCompleted || isActive ? step.activeIcon : step.icon,
-                    color: isCompleted || isActive ? Colors.blue : Colors.grey,
+                    color: isCompleted ? Colors.green : isActive ? Colors.blue : Colors.grey,
                     size: 24,
                   ),
-                  const SizedBox(height: 4),
-                  Text(
-                    (isActive ? step.optimizingText : step.optimizedText).tr(),
-                    style: TextStyle(
-                      fontSize: 12,
-                      color: isCompleted || isActive ? Colors.blue : Colors.grey,
-                      fontWeight: isActive ? FontWeight.bold : FontWeight.normal,
+                  const SizedBox(height: 8),
+                  SizedBox(
+                    width: 100,
+                    child: Text(
+                      (isActive ? step.optimizingText : step.optimizedText).tr(),
+                      style: TextStyle(
+                        fontSize: 12,
+                        color: isCompleted ? Colors.green : isActive ? Colors.blue : Colors.grey,
+                        fontWeight: isActive ? FontWeight.bold : FontWeight.normal,
+                      ),
+                      textAlign: TextAlign.center,
+                      maxLines: 2,
+                      overflow: TextOverflow.ellipsis,
                     ),
-                    textAlign: TextAlign.center,
                   ),
                 ],
               ),
@@ -276,12 +278,12 @@ class _HomeScreenState extends State<HomeScreen> with SingleTickerProviderStateM
           },
           indicatorBuilder: (_, index) {
             final isActive = currentStep == index;
-            final isCompleted = currentStep > index;
+            final isCompleted = currentStep > index || (showDoneButton && index == optimizeSteps.length - 1);
             
             return DotIndicator(
               size: 20,
-              color: isCompleted || isActive ? Colors.blue : Colors.grey.shade300,
-              child: isActive
+              color: isCompleted ? Colors.green : isActive ? Colors.blue : Colors.grey.shade300,
+              child: isActive && !showDoneButton
                   ? const Padding(
                       padding: EdgeInsets.all(4),
                       child: CircularProgressIndicator(
@@ -295,9 +297,9 @@ class _HomeScreenState extends State<HomeScreen> with SingleTickerProviderStateM
             );
           },
           connectorBuilder: (_, index, __) {
-            final isCompleted = currentStep > index;
+            final isCompleted = currentStep > index || (showDoneButton && index == optimizeSteps.length - 1);
             return SolidLineConnector(
-              color: isCompleted ? Colors.blue : Colors.grey.shade300,
+              color: isCompleted ? Colors.green : Colors.grey.shade300,
             );
           },
         ),
@@ -321,14 +323,14 @@ class _HomeScreenState extends State<HomeScreen> with SingleTickerProviderStateM
           ),
         ),
         child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
           children: [
+            const SizedBox(height: 100),
             SlideTransition(
               position: _slideAnimation,
               child: ScaleTransition(
                 scale: _scaleAnimation,
                 child: CircularPercentIndicator(
-                  radius: 150.0,
+                  radius: 110.0,
                   lineWidth: 15.0,
                   animation: true,
                   animationDuration: 1000,
@@ -361,62 +363,11 @@ class _HomeScreenState extends State<HomeScreen> with SingleTickerProviderStateM
                 ),
               ),
             ),
-            const SizedBox(height: 50),
-            FadeTransition(
-              opacity: _fadeAnimation,
-              child: Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 32),
-                child: Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                  children: [
-                    _buildCircularButton(
-                      icon: Icons.memory,
-                      label: 'RAM',
-                      color: Colors.blue,
-                      onTap: () {
-                        Navigator.push(
-                          context,
-                          MaterialPageRoute(
-                            builder: (context) => const RamCleanerScreen(),
-                          ),
-                        );
-                      },
-                    ),
-                    _buildCircularButton(
-                      icon: isCharging ? Icons.battery_charging_full : Icons.battery_full,
-                      label: '$batteryLevel%',
-                      color: Colors.green,
-                      onTap: () {
-                        Navigator.push(
-                          context,
-                          MaterialPageRoute(
-                            builder: (context) => const BatteryInfoScreen(),
-                          ),
-                        );
-                      },
-                    ),
-                    _buildCircularButton(
-                      icon: Icons.settings,
-                      label: 'settings'.tr(),
-                      color: Colors.grey,
-                      onTap: () {
-                        Navigator.push(
-                          context,
-                          MaterialPageRoute(
-                            builder: (context) => const SettingsScreen(),
-                          ),
-                        );
-                      },
-                    ),
-                  ],
-                ),
-              ),
-            ),
+            const SizedBox(height: 30),
             if (isOptimizing) ...[
-              const SizedBox(height: 40),
               _buildOptimizationTimeline(),
               if (showDoneButton) ...[
-                const SizedBox(height: 30),
+                const SizedBox(height: 20),
                 SizedBox(
                   width: 200,
                   height: 50,
@@ -439,8 +390,60 @@ class _HomeScreenState extends State<HomeScreen> with SingleTickerProviderStateM
                     ),
                   ),
                 ),
+                const SizedBox(height: 20),
               ],
             ] else ...[
+              const SizedBox(height: 40),
+              FadeTransition(
+                opacity: _fadeAnimation,
+                child: Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 32),
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                    children: [
+                      _buildCircularButton(
+                        icon: Icons.memory,
+                        label: 'RAM',
+                        color: Colors.blue,
+                        onTap: () {
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                              builder: (context) => const RamCleanerScreen(),
+                            ),
+                          );
+                        },
+                      ),
+                      _buildCircularButton(
+                        icon: isCharging ? Icons.battery_charging_full : Icons.battery_full,
+                        label: '$batteryLevel%',
+                        color: Colors.green,
+                        onTap: () {
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                              builder: (context) => const BatteryInfoScreen(),
+                            ),
+                          );
+                        },
+                      ),
+                      _buildCircularButton(
+                        icon: Icons.settings,
+                        label: 'settings'.tr(),
+                        color: Colors.grey,
+                        onTap: () {
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                              builder: (context) => const SettingsScreen(),
+                            ),
+                          );
+                        },
+                      ),
+                    ],
+                  ),
+                ),
+              ),
               const SizedBox(height: 40),
               FadeTransition(
                 opacity: _fadeAnimation,
@@ -487,4 +490,4 @@ class OptimizeStep {
     required this.optimizingText,
     required this.optimizedText,
   });
-}
+} 
