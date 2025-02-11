@@ -7,6 +7,11 @@
         android:label="Boostify"
         android:name="${applicationName}"
         android:icon="@mipmap/ic_launcher">
+
+        <meta-data
+        android:name="com.google.android.gms.ads.APPLICATION_ID"
+        android:value="ca-app-pub-1350059723840632~9211276650" />
+
         <activity
             android:name=".MainActivity"
             android:exported="true"
