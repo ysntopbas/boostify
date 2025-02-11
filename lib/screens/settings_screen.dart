@@ -4,6 +4,10 @@ import 'package:easy_localization/easy_localization.dart';
 class SettingsScreen extends StatelessWidget {
   const SettingsScreen({super.key});
 
+  void _restartApp(BuildContext context) {
+    Navigator.of(context).pushNamedAndRemoveUntil('/', (route) => false);
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -32,9 +36,12 @@ class SettingsScreen extends StatelessWidget {
                         leading: Radio<String>(
                           value: 'tr',
                           groupValue: context.locale.languageCode,
-                          onChanged: (value) {
-                            context.setLocale(const Locale('tr'));
-                            Navigator.pop(context);
+                          onChanged: (value) async {
+                            await context.setLocale(const Locale('tr'));
+                            if (context.mounted) {
+                              Navigator.pop(context);
+                              _restartApp(context);
+                            }
                           },
                         ),
                       ),
@@ -43,9 +50,12 @@ class SettingsScreen extends StatelessWidget {
                         leading: Radio<String>(
                           value: 'en',
                           groupValue: context.locale.languageCode,
-                          onChanged: (value) {
-                            context.setLocale(const Locale('en'));
-                            Navigator.pop(context);
+                          onChanged: (value) async {
+                            await context.setLocale(const Locale('en'));
+                            if (context.mounted) {
+                              Navigator.pop(context);
+                              _restartApp(context);
+                            }
                           },
                         ),
                       ),
