@@ -54,7 +54,7 @@ class OptimizeService {
     final currentScore = prefs.getDouble(_scoreKey) ?? _maxScore;
     double newScore;
 
-    if (currentScore >= 95 && currentScore < 100) {
+    if (currentScore >= 90 && currentScore < 100) {
       // 95-99 arası değerler için direkt 100
       newScore = 100;
     } else {
