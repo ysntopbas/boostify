@@ -33,5 +33,15 @@
   "excellent": "Mükemmel",
   "good": "İyi",
   "average": "Orta",
-  "critical": "Kritik"
+  "critical": "Kritik",
+  "cpu_optimizing": "İşlemci Optimize Ediliyor",
+  "ram_optimizing": "RAM Optimize Ediliyor",
+  "battery_optimizing": "Pil Optimize Ediliyor",
+  "cache_optimizing": "Önbellek Optimize Ediliyor",
+  "optimization_completed": "Optimizasyon Tamamlandı",
+  "cpu_optimized": "İşlemci Optimize Edildi",
+  "ram_optimized": "RAM Optimize Edildi",
+  "battery_optimized": "Pil Optimize Edildi",
+  "cache_optimized": "Önbellek Optimize Edildi",
+  "done": "Tamamlandı"
 } 

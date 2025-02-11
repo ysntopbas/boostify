@@ -33,5 +33,15 @@
   "excellent": "Excellent",
   "good": "Good",
   "average": "Average",
-  "critical": "Critical"
+  "critical": "Critical",
+  "cpu_optimizing": "Optimizing CPU",
+  "ram_optimizing": "Optimizing RAM",
+  "battery_optimizing": "Optimizing Battery",
+  "cache_optimizing": "Optimizing Cache",
+  "optimization_completed": "Optimization Completed",
+  "cpu_optimized": "CPU Optimized",
+  "ram_optimized": "RAM Optimized",
+  "battery_optimized": "Battery Optimized",
+  "cache_optimized": "Cache Optimized",
+  "done": "Done"
 } 
