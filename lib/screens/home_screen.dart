@@ -229,82 +229,151 @@ class _HomeScreenState extends State<HomeScreen> with SingleTickerProviderStateM
   }
 
   Widget _buildOptimizationTimeline() {
-    return Container(
-      height: 160,
-      padding: const EdgeInsets.symmetric(horizontal: 16),
-      child: Timeline.tileBuilder(
-        theme: TimelineThemeData(
-          direction: Axis.horizontal,
-          connectorTheme: const ConnectorThemeData(
-            thickness: 2.0,
-            space: 12.0,
+    return Column(
+      children: [
+        Container(
+          height: 160,
+          padding: const EdgeInsets.symmetric(horizontal: 16),
+          child: Timeline.tileBuilder(
+            theme: TimelineThemeData(
+              direction: Axis.horizontal,
+              connectorTheme: const ConnectorThemeData(
+                thickness: 2.0,
+                space: 12.0,
+              ),
+            ),
+            builder: TimelineTileBuilder.connected(
+              connectionDirection: ConnectionDirection.before,
+              itemCount: optimizeSteps.length,
+              contentsBuilder: (_, index) {
+                final step = optimizeSteps[index];
+                final isActive = currentStep == index;
+                final isCompleted = currentStep > index || (showDoneButton && index == optimizeSteps.length - 1);
+                
+                return Padding(
+                  padding: const EdgeInsets.only(top: 12.0),
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Icon(
+                        isCompleted || isActive ? step.activeIcon : step.icon,
+                        color: isCompleted ? Colors.green : isActive ? Colors.blue : Colors.grey,
+                        size: 24,
+                      ),
+                      const SizedBox(height: 12),
+                      SizedBox(
+                        width: 105,
+                        child: Text(
+                          (isActive ? step.optimizingText : step.optimizedText).tr(),
+                          style: TextStyle(
+                            fontSize: 12,
+                            color: isCompleted ? Colors.green : isActive ? Colors.blue : Colors.grey,
+                            fontWeight: isActive ? FontWeight.bold : FontWeight.normal,
+                          ),
+                          textAlign: TextAlign.center,
+                          maxLines: 2,
+                          overflow: TextOverflow.ellipsis,
+                        ),
+                      ),
+                    ],
+                  ),
+                );
+              },
+              indicatorBuilder: (_, index) {
+                final isActive = currentStep == index;
+                final isCompleted = currentStep > index || (showDoneButton && index == optimizeSteps.length - 1);
+                
+                return DotIndicator(
+                  size: 20,
+                  color: isCompleted ? Colors.green : isActive ? Colors.blue : Colors.grey.shade300,
+                  child: isActive && !showDoneButton
+                      ? const Padding(
+                          padding: EdgeInsets.all(4),
+                          child: CircularProgressIndicator(
+                            strokeWidth: 2,
+                            valueColor: AlwaysStoppedAnimation(Colors.white),
+                          ),
+                        )
+                      : isCompleted
+                          ? const Icon(Icons.check, size: 12, color: Colors.white)
+                          : null,
+                );
+              },
+              connectorBuilder: (_, index, __) {
+                final isCompleted = currentStep > index || (showDoneButton && index == optimizeSteps.length - 1);
+                return SolidLineConnector(
+                  color: isCompleted ? Colors.green : Colors.grey.shade300,
+                );
+              },
+            ),
           ),
         ),
-        builder: TimelineTileBuilder.connected(
-          connectionDirection: ConnectionDirection.before,
-          itemCount: optimizeSteps.length,
-          contentsBuilder: (_, index) {
-            final step = optimizeSteps[index];
-            final isActive = currentStep == index;
-            final isCompleted = currentStep > index || (showDoneButton && index == optimizeSteps.length - 1);
-            
-            return Padding(
-              padding: const EdgeInsets.only(top: 12.0),
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  Icon(
-                    isCompleted || isActive ? step.activeIcon : step.icon,
-                    color: isCompleted ? Colors.green : isActive ? Colors.blue : Colors.grey,
-                    size: 24,
-                  ),
-                  const SizedBox(height: 12),
-                  SizedBox(
-                    width: 105,
-                    child: Text(
-                      (isActive ? step.optimizingText : step.optimizedText).tr(),
-                      style: TextStyle(
-                        fontSize: 12,
-                        color: isCompleted ? Colors.green : isActive ? Colors.blue : Colors.grey,
-                        fontWeight: isActive ? FontWeight.bold : FontWeight.normal,
-                      ),
-                      textAlign: TextAlign.center,
-                      maxLines: 2,
-                      overflow: TextOverflow.ellipsis,
-                    ),
-                  ),
-                ],
+        const SizedBox(height: 16),
+        Row(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            if (!showDoneButton) ...[
+              SizedBox(
+                width: 24,
+                height: 24,
+                child: CircularProgressIndicator(
+                  strokeWidth: 2,
+                  valueColor: AlwaysStoppedAnimation<Color>(Colors.blue),
+                ),
               ),
-            );
-          },
-          indicatorBuilder: (_, index) {
-            final isActive = currentStep == index;
-            final isCompleted = currentStep > index || (showDoneButton && index == optimizeSteps.length - 1);
-            
-            return DotIndicator(
-              size: 20,
-              color: isCompleted ? Colors.green : isActive ? Colors.blue : Colors.grey.shade300,
-              child: isActive && !showDoneButton
-                  ? const Padding(
-                      padding: EdgeInsets.all(4),
-                      child: CircularProgressIndicator(
-                        strokeWidth: 2,
-                        valueColor: AlwaysStoppedAnimation(Colors.white),
-                      ),
-                    )
-                  : isCompleted
-                      ? const Icon(Icons.check, size: 12, color: Colors.white)
-                      : null,
-            );
-          },
-          connectorBuilder: (_, index, __) {
-            final isCompleted = currentStep > index || (showDoneButton && index == optimizeSteps.length - 1);
-            return SolidLineConnector(
-              color: isCompleted ? Colors.green : Colors.grey.shade300,
-            );
-          },
+              const SizedBox(width: 12),
+              Text(
+                'optimizing_status'.tr(),
+                style: const TextStyle(
+                  fontSize: 18,
+                  fontWeight: FontWeight.bold,
+                  color: Colors.blue,
+                ),
+              ),
+            ] else ...[
+              const Icon(
+                Icons.check_circle,
+                color: Colors.green,
+                size: 24,
+              ),
+              const SizedBox(width: 12),
+              Text(
+                'optimized_status'.tr(),
+                style: const TextStyle(
+                  fontSize: 18,
+                  fontWeight: FontWeight.bold,
+                  color: Colors.green,
+                ),
+              ),
+            ],
+          ],
         ),
-      ),
+        if (showDoneButton) ...[
+          const SizedBox(height: 16),
+          SizedBox(
+            width: 200,
+            height: 50,
+            child: ElevatedButton(
+              onPressed: _resetOptimization,
+              style: ElevatedButton.styleFrom(
+                backgroundColor: Colors.blue,
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(25),
+                ),
+                elevation: 5,
+              ),
+              child: Text(
+                'done'.tr(),
+                style: const TextStyle(
+                  fontSize: 18,
+                  fontWeight: FontWeight.bold,
+                  color: Colors.white,
+                ),
+              ),
+            ),
+          ),
+        ],
+      ],
     );
   }
 
@@ -367,32 +436,6 @@ class _HomeScreenState extends State<HomeScreen> with SingleTickerProviderStateM
             const SizedBox(height: 20),
             if (isOptimizing) ...[
               _buildOptimizationTimeline(),
-              if (showDoneButton) ...[
-                const SizedBox(height: 16),
-                SizedBox(
-                  width: 200,
-                  height: 50,
-                  child: ElevatedButton(
-                    onPressed: _resetOptimization,
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: Colors.blue,
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(25),
-                      ),
-                      elevation: 5,
-                    ),
-                    child: Text(
-                      'done'.tr(),
-                      style: const TextStyle(
-                        fontSize: 18,
-                        fontWeight: FontWeight.bold,
-                        color: Colors.white,
-                      ),
-                    ),
-                  ),
-                ),
-                const SizedBox(height: 16),
-              ],
             ] else ...[
               const SizedBox(height: 40),
               FadeTransition(

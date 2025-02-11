@@ -43,5 +43,11 @@
   "ram_optimized": "RAM",
   "battery_optimized": "Pil",
   "cache_optimized": "Önbellek",
-  "done": "Tamamlandı"
+  "done": "Tamamlandı",
+  "optimizing_status": "Optimize Ediliyor",
+  "optimized_status": "Optimize Edildi",
+  "ram_cleaner": "RAM Temizleyici",
+  "ram_usage_low": "Düşük Kullanım",
+  "ram_usage_normal": "Normal Kullanım",
+  "ram_usage_high": "Yüksek Kullanım"
 } 

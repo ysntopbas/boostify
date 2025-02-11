@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:percent_indicator/circular_percent_indicator.dart';
 import 'package:boostify/services/system_service.dart';
+import 'package:easy_localization/easy_localization.dart';
 
 class RamCleanerScreen extends StatefulWidget {
   const RamCleanerScreen({super.key});
@@ -45,16 +46,17 @@ class _RamCleanerScreenState extends State<RamCleanerScreen> {
 
   String _getRamStatusText() {
     final percentage = ramUsage * 100;
-    if (percentage <= 30) return 'Düşük Kullanım';
-    if (percentage <= 70) return 'Normal Kullanım';
-    return 'Yüksek Kullanım';
+    if (percentage <= 30) return 'ram_usage_low'.tr();
+    if (percentage <= 70) return 'ram_usage_normal'.tr();
+    return 'ram_usage_high'.tr();
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      extendBodyBehindAppBar: true,
       appBar: AppBar(
-        title: Text('RAM Temizleyici'),
+        title: Text('ram_cleaner'.tr()),
         centerTitle: true,
         elevation: 0,
         backgroundColor: Colors.transparent,
@@ -84,7 +86,7 @@ class _RamCleanerScreenState extends State<RamCleanerScreen> {
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
                   Text(
-                    'RAM Kullanımı',
+                    'ram_usage'.tr(),
                     style: const TextStyle(
                       fontSize: 20,
                       fontWeight: FontWeight.w500,
@@ -127,7 +129,7 @@ class _RamCleanerScreenState extends State<RamCleanerScreen> {
                   elevation: 5,
                 ),
                 child: Text(
-                  isCleaningRam ? 'Temizleniyor...' : 'RAM\'i Temizle',
+                  isCleaningRam ? 'cleaning'.tr() : 'clean_ram'.tr(),
                   style: const TextStyle(
                     fontSize: 18,
                     fontWeight: FontWeight.bold,

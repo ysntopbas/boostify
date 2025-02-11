@@ -43,5 +43,11 @@
   "ram_optimized": "RAM",
   "battery_optimized": "Battery",
   "cache_optimized": "Cache",
-  "done": "Done"
+  "done": "Done",
+  "optimizing_status": "Optimizing",
+  "optimized_status": "Optimized",
+  "ram_cleaner": "RAM Cleaner",
+  "ram_usage_low": "Low Usage",
+  "ram_usage_normal": "Normal Usage",
+  "ram_usage_high": "High Usage"
 } 
