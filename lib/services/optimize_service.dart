@@ -6,7 +6,7 @@ class OptimizeService {
   static const String _lastOptimizeTimeKey = 'last_optimize_time';
   static const String _scoreKey = 'optimize_score';
   static const String _optimizeCountKey = 'optimize_count';
-  static const int _checkInterval = 6; // Test için 6 saniye
+  static const int _checkInterval = 600; 
   static const double _minScore = 70.0;
   static const double _maxScore = 100.0;
 

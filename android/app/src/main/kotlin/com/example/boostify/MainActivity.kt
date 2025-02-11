@@ -1,4 +1,4 @@
-package com.example.boostify
+package com.atqs.boostify
 
 import android.app.ActivityManager
 import android.content.Context
@@ -11,6 +11,8 @@ import android.content.IntentFilter
 import android.app.usage.UsageStatsManager
 import android.app.usage.UsageStats
 import android.provider.Settings
+import android.content.pm.PackageManager
+import java.io.File
 
 class MainActivity: FlutterActivity() {
     private val CHANNEL = "com.boostify/system"
@@ -25,6 +27,14 @@ class MainActivity: FlutterActivity() {
                 }
                 "cleanRam" -> {
                     cleanRam()
+                    result.success(null)
+                }
+                "killBackgroundProcesses" -> {
+                    killBackgroundProcesses()
+                    result.success(null)
+                }
+                "clearAppCache" -> {
+                    clearAppCache()
                     result.success(null)
                 }
                 else -> {
@@ -70,6 +80,27 @@ class MainActivity: FlutterActivity() {
         activityManager.let {
             it.getRunningAppProcesses()?.forEach { processInfo ->
                 it.killBackgroundProcesses(processInfo.processName)
+            }
+        }
+    }
+
+    private fun killBackgroundProcesses() {
+        val activityManager = getSystemService(Context.ACTIVITY_SERVICE) as ActivityManager
+        val packages = packageManager.getInstalledPackages(PackageManager.GET_META_DATA)
+        
+        for (packageInfo in packages) {
+            activityManager.killBackgroundProcesses(packageInfo.packageName)
+        }
+    }
+
+    private fun clearAppCache() {
+        val packageManager = applicationContext.packageManager
+        val packages = packageManager.getInstalledPackages(0)
+        
+        for (packageInfo in packages) {
+            val dir = File(applicationContext.cacheDir, packageInfo.packageName)
+            if (dir.exists()) {
+                dir.deleteRecursively()
             }
         }
     }

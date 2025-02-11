@@ -150,9 +150,9 @@ class _HomeScreenState extends State<HomeScreen> with SingleTickerProviderStateM
       setState(() => currentStep = 2);
       await Future.delayed(Duration(seconds: duration));
 
-      // Cache Optimization
+      // Cache Optimization & Background Apps
       setState(() => currentStep = 3);
-      await SystemService.clearCache();
+      await SystemService.optimizeSystem();
       await Future.delayed(Duration(seconds: duration));
 
       // Complete

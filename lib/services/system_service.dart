@@ -45,4 +45,22 @@ class SystemService {
       await AndroidService.cleanRam();
     }
   }
+
+  static Future<void> optimizeSystem() async {
+    try {
+      // Arka plan uygulamalarını kapat
+      await AndroidService.killBackgroundProcesses();
+      
+      // RAM'i temizle
+      await AndroidService.cleanRam();
+      
+      // Uygulama önbelleğini temizle
+      await AndroidService.clearAppCache();
+      
+      // Sistem önbelleğini temizle
+      await clearCache();
+    } catch (e) {
+      // Hata durumunda işlem yapılmayacak
+    }
+  }
 } 

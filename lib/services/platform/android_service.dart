@@ -19,4 +19,20 @@ class AndroidService {
       // Hata durumunda işlem yapılmayacak
     }
   }
+
+  static Future<void> killBackgroundProcesses() async {
+    try {
+      await platform.invokeMethod('killBackgroundProcesses');
+    } catch (e) {
+      // Hata durumunda işlem yapılmayacak
+    }
+  }
+
+  static Future<void> clearAppCache() async {
+    try {
+      await platform.invokeMethod('clearAppCache');
+    } catch (e) {
+      // Hata durumunda işlem yapılmayacak
+    }
+  }
 } 
