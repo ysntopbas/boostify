@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:boostify/screens/home_screen.dart';
+import 'package:boostify/screens/splash_screen.dart';
 import 'package:boostify/services/optimize_service.dart';
 import 'package:boostify/services/theme_service.dart';
 import 'package:boostify/services/ad_service.dart';
@@ -66,7 +67,8 @@ class _MyAppState extends State<MyApp> {
       darkTheme: ThemeService.getDarkTheme(),
       initialRoute: '/',
       routes: {
-        '/': (context) => HomeScreen(onThemeChanged: _setThemeMode),
+        '/': (context) => const SplashScreen(),
+        '/home': (context) => HomeScreen(onThemeChanged: _setThemeMode),
       },
     );
   }
