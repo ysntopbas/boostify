@@ -12,7 +12,12 @@ import 'dart:async';
 import 'package:timelines_plus/timelines_plus.dart';
 
 class HomeScreen extends StatefulWidget {
-  const HomeScreen({super.key});
+  final Function(ThemeMode) onThemeChanged;
+  
+  const HomeScreen({
+    super.key,
+    required this.onThemeChanged,
+  });
 
   @override
   State<HomeScreen> createState() => _HomeScreenState();
@@ -479,7 +484,12 @@ class _HomeScreenState extends State<HomeScreen> with SingleTickerProviderStateM
                           Navigator.push(
                             context,
                             MaterialPageRoute(
-                              builder: (context) => const SettingsScreen(),
+                              builder: (context) => SettingsScreen(
+                                onThemeChanged: widget.onThemeChanged,
+                                currentThemeMode: Theme.of(context).brightness == Brightness.dark 
+                                  ? ThemeMode.dark 
+                                  : ThemeMode.light,
+                              ),
                             ),
                           );
                         },

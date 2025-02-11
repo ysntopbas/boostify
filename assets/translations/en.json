@@ -49,5 +49,9 @@
   "ram_cleaner": "RAM Cleaner",
   "ram_usage_low": "Low Usage",
   "ram_usage_normal": "Normal Usage",
-  "ram_usage_high": "High Usage"
+  "ram_usage_high": "High Usage",
+  "theme": "Theme",
+  "theme_settings": "Theme Settings",
+  "light_theme": "Light Theme",
+  "dark_theme": "Dark Theme"
 } 

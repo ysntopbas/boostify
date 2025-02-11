@@ -49,5 +49,9 @@
   "ram_cleaner": "RAM Temizleyici",
   "ram_usage_low": "Düşük Kullanım",
   "ram_usage_normal": "Normal Kullanım",
-  "ram_usage_high": "Yüksek Kullanım"
+  "ram_usage_high": "Yüksek Kullanım",
+  "theme": "Tema",
+  "theme_settings": "Tema Ayarları",
+  "light_theme": "Açık Tema",
+  "dark_theme": "Koyu Tema"
 } 

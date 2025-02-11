@@ -2,7 +2,14 @@ import 'package:flutter/material.dart';
 import 'package:easy_localization/easy_localization.dart';
 
 class SettingsScreen extends StatelessWidget {
-  const SettingsScreen({super.key});
+  final Function(ThemeMode) onThemeChanged;
+  final ThemeMode currentThemeMode;
+
+  const SettingsScreen({
+    super.key,
+    required this.onThemeChanged,
+    required this.currentThemeMode,
+  });
 
   void _restartApp(BuildContext context) {
     Navigator.of(context).pushNamedAndRemoveUntil('/', (route) => false);
@@ -15,7 +22,6 @@ class SettingsScreen extends StatelessWidget {
         title: Text('settings'.tr()),
         centerTitle: true,
         elevation: 0,
-        backgroundColor: Colors.transparent,
       ),
       body: ListView(
         children: [
@@ -56,6 +62,54 @@ class SettingsScreen extends StatelessWidget {
                               Navigator.pop(context);
                               _restartApp(context);
                             }
+                          },
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              );
+            },
+          ),
+          ListTile(
+            leading: Icon(
+              currentThemeMode == ThemeMode.dark 
+                ? Icons.dark_mode 
+                : Icons.light_mode
+            ),
+            title: Text('theme'.tr()),
+            subtitle: Text(
+              currentThemeMode == ThemeMode.dark 
+                ? 'dark_theme'.tr() 
+                : 'light_theme'.tr()
+            ),
+            onTap: () {
+              showDialog(
+                context: context,
+                builder: (context) => AlertDialog(
+                  title: Text('theme_settings'.tr()),
+                  content: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      ListTile(
+                        title: Text('light_theme'.tr()),
+                        leading: Radio<ThemeMode>(
+                          value: ThemeMode.light,
+                          groupValue: currentThemeMode,
+                          onChanged: (value) {
+                            onThemeChanged(value!);
+                            Navigator.pop(context);
+                          },
+                        ),
+                      ),
+                      ListTile(
+                        title: Text('dark_theme'.tr()),
+                        leading: Radio<ThemeMode>(
+                          value: ThemeMode.dark,
+                          groupValue: currentThemeMode,
+                          onChanged: (value) {
+                            onThemeChanged(value!);
+                            Navigator.pop(context);
                           },
                         ),
                       ),
