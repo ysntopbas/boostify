@@ -22,31 +22,15 @@ class _HomeScreenState extends State<HomeScreen> {
   double systemScore = 1.0;
   int batteryLevel = 0;
   bool isCharging = false;
-  Timer? _timer;
 
   @override
   void initState() {
     super.initState();
     _initializeApp();
-    _startTimer();
-  }
-
-  @override
-  void dispose() {
-    _timer?.cancel();
-    super.dispose();
   }
 
   Future<void> _initializeApp() async {
-    await OptimizeService.init();
     await _loadSystemInfo();
-  }
-
-  void _startTimer() {
-    // Her 1 dakikada bir kontrol et
-    _timer = Timer.periodic(const Duration(minutes: 1), (timer) async {
-      await _loadSystemInfo();
-    });
   }
 
   Future<void> _loadSystemInfo() async {
@@ -55,7 +39,7 @@ class _HomeScreenState extends State<HomeScreen> {
     final score = await OptimizeService.getScore();
     
     setState(() {
-      systemScore = score / 100; // Yüzdelik değeri 0-1 aralığına çevir
+      systemScore = score / 100;
       batteryLevel = battery;
       isCharging = batteryState == BatteryState.charging;
     });
