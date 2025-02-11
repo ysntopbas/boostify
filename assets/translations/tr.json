@@ -3,7 +3,7 @@
   "clean_ram": "RAM Temizle",
   "clean_cache": "Önbellek Temizle",
   "cleaning": "Temizleniyor...",
-  "cleaned": "Temizlendi!",
+  "cleaned": "RAM Temizlendi!",
   "ram_usage": "RAM Kullanımı",
   "cache_size": "Önbellek Boyutu",
   "optimization": "Optimize Et",

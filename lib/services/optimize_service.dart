@@ -4,14 +4,26 @@ import 'package:shared_preferences/shared_preferences.dart';
 
 class OptimizeService {
   static const String _lastOptimizeTimeKey = 'last_optimize_time';
-  static const String _scoreKey = 'optimize_score';
+  static const String _scoreKey = 'system_score';
   static const String _optimizeCountKey = 'optimize_count';
   static const int _checkInterval = 600; 
   static const double _minScore = 70.0;
   static const double _maxScore = 100.0;
+  static const String _isFirstLaunchKey = 'is_first_launch';
 
   static Future<void> init() async {
     final prefs = await SharedPreferences.getInstance();
+    final isFirstLaunch = prefs.getBool(_isFirstLaunchKey) ?? true;
+
+    if (isFirstLaunch) {
+      // İlk açılışta random skor oluştur (75-85 arası)
+      final random = Random();
+      final initialScore = 75 + random.nextInt(11); // 75 ile 85 arası random
+      
+      await prefs.setDouble(_scoreKey, initialScore.toDouble());
+      await prefs.setBool(_isFirstLaunchKey, false); // İlk açılışı işaretle
+    }
+
     if (!prefs.containsKey(_scoreKey)) {
       await prefs.setDouble(_scoreKey, _maxScore);
       await prefs.setInt(_lastOptimizeTimeKey, DateTime.now().millisecondsSinceEpoch);
@@ -52,24 +64,11 @@ class OptimizeService {
   static Future<double> optimize() async {
     final prefs = await SharedPreferences.getInstance();
     final currentScore = prefs.getDouble(_scoreKey) ?? _maxScore;
-    double newScore;
-
-    if (currentScore >= 90 && currentScore < 100) {
-      // 95-99 arası değerler için direkt 100
-      newScore = 100;
-    } else {
-      final optimizeCount = prefs.getInt(_optimizeCountKey) ?? 0;
-      if (optimizeCount == 0) {
-        // İlk optimize: 95-100 arası random
-        newScore = 95 + Random().nextDouble() * 5;
-      } else {
-        // İkinci ve sonraki optimize: 100
-        newScore = 100;
-      }
-      await prefs.setInt(_optimizeCountKey, optimizeCount + 1);
-    }
-
-    // Yeni skoru ve optimize zamanını kaydet
+    
+    // Optimize işlemi sonrası skor artışı (örnek mantık)
+    double newScore = currentScore + 15;
+    if (newScore > 100) newScore = 100;
+    
     await prefs.setDouble(_scoreKey, newScore);
     await prefs.setInt(_lastOptimizeTimeKey, DateTime.now().millisecondsSinceEpoch);
 
@@ -84,5 +83,10 @@ class OptimizeService {
   static Future<void> resetAll() async {
     final prefs = await SharedPreferences.getInstance();
     await prefs.clear();
+  }
+
+  static Future<void> resetScore() async {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setDouble(_scoreKey, 75.0);
   }
 }

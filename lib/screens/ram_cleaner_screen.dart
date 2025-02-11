@@ -14,9 +14,11 @@ class RamCleanerScreen extends StatefulWidget {
 
 class _RamCleanerScreenState extends State<RamCleanerScreen> {
   bool isCleaningRam = false;
+  bool showCleanedStatus = false;
   double ramUsage = 0.7; // Test için %70 başlangıç değeri
   BannerAd? _bannerAd;
   bool _isAdLoaded = false;
+  bool isCleanButtonEnabled = true;
 
   @override
   void initState() {
@@ -49,15 +51,50 @@ class _RamCleanerScreenState extends State<RamCleanerScreen> {
   }
 
   Future<void> cleanRam() async {
-    await AdService.showRewardedAd();
-    await Future.delayed(const Duration(seconds: 5));
-    
-    setState(() => isCleaningRam = true);
+    if (!isCleanButtonEnabled) return;
+
+    setState(() {
+      isCleanButtonEnabled = false;
+    });
+
     try {
-      await SystemService.cleanRam();
-      await _loadRamInfo();
-    } finally {
-      setState(() => isCleaningRam = false);
+      final bool rewardEarned = await AdService.showRewardedAd();
+      
+      if (rewardEarned) {
+        setState(() {
+          isCleaningRam = true;
+          showCleanedStatus = false;
+        });
+
+        // RAM temizleme işlemi
+        await SystemService.cleanRam();
+        await Future.delayed(const Duration(seconds: 2));
+        await _loadRamInfo();
+
+        setState(() {
+          isCleaningRam = false;
+          showCleanedStatus = true;
+        });
+
+        // 3 saniye sonra durumu sıfırla
+        await Future.delayed(const Duration(seconds: 3));
+        if (mounted) {
+          setState(() {
+            showCleanedStatus = false;
+            isCleanButtonEnabled = true;
+          });
+        }
+      } else {
+        setState(() {
+          isCleanButtonEnabled = true;
+        });
+      }
+    } catch (e) {
+      setState(() {
+        isCleaningRam = false;
+        showCleanedStatus = false;
+        isCleanButtonEnabled = true;
+      });
     }
   }
 
@@ -73,6 +110,50 @@ class _RamCleanerScreenState extends State<RamCleanerScreen> {
     if (percentage <= 30) return 'ram_usage_low'.tr();
     if (percentage <= 70) return 'ram_usage_normal'.tr();
     return 'ram_usage_high'.tr();
+  }
+
+  Widget _buildStatusIndicator() {
+    if (!isCleaningRam && !showCleanedStatus) return const SizedBox.shrink();
+
+    return Row(
+      mainAxisAlignment: MainAxisAlignment.center,
+      children: [
+        if (isCleaningRam) ...[
+          SizedBox(
+            width: 24,
+            height: 24,
+            child: CircularProgressIndicator(
+              strokeWidth: 2,
+              valueColor: AlwaysStoppedAnimation<Color>(Colors.blue),
+            ),
+          ),
+          const SizedBox(width: 12),
+          Text(
+            'cleaning'.tr(),
+            style: const TextStyle(
+              fontSize: 18,
+              fontWeight: FontWeight.bold,
+              color: Colors.blue,
+            ),
+          ),
+        ] else if (showCleanedStatus) ...[
+          const Icon(
+            Icons.check_circle,
+            color: Colors.green,
+            size: 24,
+          ),
+          const SizedBox(width: 12),
+          Text(
+            'cleaned'.tr(),
+            style: const TextStyle(
+              fontSize: 18,
+              fontWeight: FontWeight.bold,
+              color: Colors.green,
+            ),
+          ),
+        ],
+      ],
+    );
   }
 
   @override
@@ -144,12 +225,14 @@ class _RamCleanerScreenState extends State<RamCleanerScreen> {
                       progressColor: _getRamStatusColor(),
                       backgroundColor: Colors.blue.withOpacity(0.2),
                     ),
-                    const SizedBox(height: 50),
+                    const SizedBox(height: 30),
+                    _buildStatusIndicator(),
+                    const SizedBox(height: 20),
                     SizedBox(
                       width: 200,
                       height: 50,
                       child: ElevatedButton(
-                        onPressed: isCleaningRam ? null : cleanRam,
+                        onPressed: !isCleanButtonEnabled ? null : cleanRam,
                         style: ElevatedButton.styleFrom(
                           backgroundColor: _getRamStatusColor(),
                           shape: RoundedRectangleBorder(

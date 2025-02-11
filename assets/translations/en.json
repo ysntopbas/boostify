@@ -3,7 +3,7 @@
   "clean_ram": "Clean RAM",
   "clean_cache": "Clean Cache",
   "cleaning": "Cleaning...",
-  "cleaned": "Cleaned!",
+  "cleaned": "RAM Cleaned!",
   "ram_usage": "RAM Usage",
   "cache_size": "Cache Size",
   "optimization": "Optimize",
