@@ -230,13 +230,14 @@ class _HomeScreenState extends State<HomeScreen> with SingleTickerProviderStateM
 
   Widget _buildOptimizationTimeline() {
     return Container(
-      height: 120,
+      height: 160,
       padding: const EdgeInsets.symmetric(horizontal: 16),
       child: Timeline.tileBuilder(
         theme: TimelineThemeData(
           direction: Axis.horizontal,
           connectorTheme: const ConnectorThemeData(
             thickness: 2.0,
+            space: 12.0,
           ),
         ),
         builder: TimelineTileBuilder.connected(
@@ -248,7 +249,7 @@ class _HomeScreenState extends State<HomeScreen> with SingleTickerProviderStateM
             final isCompleted = currentStep > index || (showDoneButton && index == optimizeSteps.length - 1);
             
             return Padding(
-              padding: const EdgeInsets.only(top: 8.0),
+              padding: const EdgeInsets.only(top: 12.0),
               child: Column(
                 mainAxisSize: MainAxisSize.min,
                 children: [
@@ -257,9 +258,9 @@ class _HomeScreenState extends State<HomeScreen> with SingleTickerProviderStateM
                     color: isCompleted ? Colors.green : isActive ? Colors.blue : Colors.grey,
                     size: 24,
                   ),
-                  const SizedBox(height: 8),
+                  const SizedBox(height: 12),
                   SizedBox(
-                    width: 100,
+                    width: 105,
                     child: Text(
                       (isActive ? step.optimizingText : step.optimizedText).tr(),
                       style: TextStyle(
@@ -363,11 +364,11 @@ class _HomeScreenState extends State<HomeScreen> with SingleTickerProviderStateM
                 ),
               ),
             ),
-            const SizedBox(height: 30),
+            const SizedBox(height: 20),
             if (isOptimizing) ...[
               _buildOptimizationTimeline(),
               if (showDoneButton) ...[
-                const SizedBox(height: 20),
+                const SizedBox(height: 16),
                 SizedBox(
                   width: 200,
                   height: 50,
@@ -390,7 +391,7 @@ class _HomeScreenState extends State<HomeScreen> with SingleTickerProviderStateM
                     ),
                   ),
                 ),
-                const SizedBox(height: 20),
+                const SizedBox(height: 16),
               ],
             ] else ...[
               const SizedBox(height: 40),
