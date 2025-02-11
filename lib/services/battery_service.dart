@@ -1,5 +1,6 @@
 import 'package:battery_plus/battery_plus.dart';
 import 'package:flutter/services.dart';
+import 'package:easy_localization/easy_localization.dart';
 
 class BatteryService {
   static final Battery _battery = Battery();
@@ -43,13 +44,13 @@ class BatteryService {
 
   static String getBatteryHealthStatus(int health) {
     switch (health) {
-      case 2: return 'İyi';
-      case 3: return 'Aşırı Isınmış';
-      case 4: return 'Hasarlı';
-      case 5: return 'Aşırı Voltaj';
-      case 6: return 'Bilinmeyen Hata';
-      case 7: return 'Kalibre Edilmemiş';
-      default: return 'Bilinmiyor';
+      case 2: return 'health_good'.tr();
+      case 3: return 'health_overheat'.tr();
+      case 4: return 'health_dead'.tr();
+      case 5: return 'health_overvoltage'.tr();
+      case 6: return 'health_failure'.tr();
+      case 7: return 'health_cold'.tr();
+      default: return 'unknown'.tr();
     }
   }
 } 
